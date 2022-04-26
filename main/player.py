@@ -53,7 +53,7 @@ class Player(pygame.sprite.Sprite):
             self.animations[anim] = import_folder(full_path)        # 딕셔너리의 빈리스트에 png들을 채우기
     
     def import_dust_run_particles(self):
-        self.dust_run_particles = import_folder('graphics\\character\\particles\\run')
+        self.dust_run_particles = import_folder('.\\graphics\\character\\particles\\run')
         
     # 애니메이션 
     def animate(self):

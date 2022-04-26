@@ -7,16 +7,16 @@ class Particle(pygame.sprite.Sprite):
         self.frame_index = 0
         self.animation_speed = 0.25
         if type == 'jump':
-            self.frames = import_folder('graphics\\character\\particles\\jump')
+            self.frames = import_folder('.\\graphics\\character\\particles\\jump')
             self.animation_speed = 0.25
         if type == 'land':
-            self.frames = import_folder('graphics\\character\\particles\\land')
+            self.frames = import_folder('.\\graphics\\character\\particles\\land')
             self.animation_speed = 0.25
         if type == 'fall_jump':
-            self.frames = import_folder('graphics\\character\\particles\\fall_jump')
+            self.frames = import_folder('.\\graphics\\character\\particles\\fall_jump')
             self.animation_speed = 0.15
         if  type == 'super_jump':
-            self.frames = import_folder('graphics\\character\\particles\\super_jump')
+            self.frames = import_folder('.\\graphics\\character\\particles\\super_jump')
             self.animation_speed = 0.02
 
         self.image = self.frames[self.frame_index]
