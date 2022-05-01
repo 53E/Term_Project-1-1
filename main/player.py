@@ -39,14 +39,17 @@ class Player(pygame.sprite.Sprite):
         self.on_ground = False
         self.can_double_jump = False
         self.can_super_jump = True
+        self.is_attack = False
+        self.can_move = True
 
-        self.jump_count = 5
-        
+        # game status
+        self.jump_count = 100
+        self.is_restart = False        
 
     # character 에셋 가져오기
     def import_character_assets(self): 
         character_path = './graphics/character/'                          # 에셋들의 경로
-        self.animations = {'idle' : [], 'run' : [], 'jump' : [],'fall' : [],'dash' : []}
+        self.animations = {'idle' : [], 'run' : [], 'jump' : [], 'fall' : [], 'dash' : [], 'attack' : []}
 
         for anim in self.animations.keys():
             full_path = character_path + anim
@@ -57,10 +60,21 @@ class Player(pygame.sprite.Sprite):
         
     # 애니메이션 
     def animate(self):
-        animation = self.animations[self.status]  # animation은 리스트
+        if self.is_attack == False:
+            animation = self.animations[self.status]  # animation은 리스트
+            self.anim_speed = 0.075
+        else:
+            animation = self.animations['attack']   # 공격할떄 에님 불러오기 
+            self.anim_speed = 0.225
         
         # frame_index looping
         self.frame_index += self.anim_speed
+
+        # attack anim loop 
+        if self.frame_index > len(self.animations['attack']):
+            self.is_attack = False
+            self.can_move = True
+
         if self.frame_index > len(animation):
             self.frame_index = 0
         
@@ -93,16 +107,16 @@ class Player(pygame.sprite.Sprite):
     def get_input(self):
         keys = pygame.key.get_pressed()   
 
-        if keys[pygame.K_RIGHT]:
+        if keys[pygame.K_RIGHT] and self.can_move:
             self.direction.x = 1
             self.facing_right = True
-        elif keys[pygame.K_LEFT]:
+        elif keys[pygame.K_LEFT] and self.can_move:
             self.direction.x = - 1
             self.facing_right = False
         else:
             self.direction.x = 0
 
-        if keys[pygame.K_SPACE]:
+        if keys[pygame.K_SPACE] and self.can_move:
             if self.can_jump == True and self.jump_count > 0:             
                 if self.direction.y > 3 :         # 떨어지면서 점프하면 더블점프
                     pass
@@ -119,8 +133,16 @@ class Player(pygame.sprite.Sprite):
                 self.can_double_jump = False
                 self.jump_speed = -18
 
-        if keys[pygame.K_s]:
+        if keys[pygame.K_s] and self.can_move:
             self.super_jump()
+
+        if keys[pygame.K_a]:
+            if self.on_ground == True:
+                self.is_attack = True
+                self.can_move = False
+
+        if keys[pygame.K_r]:
+            self.is_restart = True
             
 
     # player's status  

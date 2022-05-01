@@ -12,16 +12,23 @@ from coin import Coin
 class Level:
     def __init__(self,level_data,surface):
         # 레벨 셋업
+        self.level_data = level_data
         self.display_surface = surface
-        self.setup_level(level_data)
+        self.setup_level(level_data)   # level 불러오기
         self.world_shift = 0
         self.world_shift_y = 0
         self.current_x = 0
 
+        # text
+        self.font_title = pygame.font.Font('.\\font\\DungeonFont.ttf',35)
+        self.font_info = pygame.font.Font('.\\font\\04B.ttf',25)
+        self.font_name = pygame.font.Font('.\\font\\DungeonFont.ttf',20)
+        self.text_x = 90
+
         # particle
         self.particle_sprite = pygame.sprite.Group()
 
-    
+
     # level_data 셋업 (행과 열을 나눠 각 셀에 할당)
     def setup_level(self,layout):   
         self.tiles = pygame.sprite.Group()  # 타일 그룹 생성 
@@ -124,6 +131,39 @@ class Level:
         else:
             witch.face_right = False
 
+    # Welecom TEXT
+    def welcome(self,x):
+        self.text_x += x
+        player = self.player.sprite
+
+        self.welcome_text = self.font_title.render('The Melancholy',True,(255,0,0))
+        self.display_surface.blit(self.welcome_text,(self.text_x,100))
+        self.welcome_text = self.font_title.render('of StarGazer',True,(255,0,0))
+        self.display_surface.blit(self.welcome_text,(self.text_x + 20,150))
+        self.welcome_text = self.font_info.render('SPACE - JUMP',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,250))
+        self.welcome_text = self.font_info.render('S - SUPER JUMP',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,350))
+        self.welcome_text = self.font_info.render('A - ATTACK',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,450))
+        self.welcome_text = self.font_info.render('R - RESTART',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,550))
+        self.welcome_text = self.font_info.render('TAB - CREDIT',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,650))
+        self.welcome_text = self.font_info.render('ESC - QUIT',True,('white'))
+        self.display_surface.blit(self.welcome_text,(self.text_x ,750))
+        self.welcome_text = self.font_name.render("JIN WOO CHOI",True,('black'))
+        self.display_surface.blit(self.welcome_text,(self.text_x + 100,800))
+
+
+    # 게임 restart
+    def restart(self):
+        player = self.player.sprite
+        if player.is_restart == True:
+            self.setup_level(self.level_data)
+            self.text_x = 90                            # text 움직여주기
+            player.is_restart = False
+
 
     def run(self):
 
@@ -135,6 +175,11 @@ class Level:
         self.tiles.update(self.world_shift)    # Group.draw(screen)
         self.tiles.draw(self.display_surface)
         self.scroll_x()
+
+        self.restart()
+
+        #text
+        self.welcome(self.world_shift)
         
         #coin
         self.coins.update(self.world_shift)
