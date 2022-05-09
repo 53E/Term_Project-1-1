@@ -30,7 +30,7 @@ class Player(pygame.sprite.Sprite):
 
         self.gravity = 0.8
         self.max_gravity = 22
-        self.jump_speed = -18
+        self.jump_speed = -16
 
         # player status
         self.status = 'idle'
@@ -45,6 +45,7 @@ class Player(pygame.sprite.Sprite):
         # game status
         self.jump_count = 100
         self.is_restart = False        
+        self.is_credit = False
 
     # character 에셋 가져오기
     def import_character_assets(self): 
@@ -117,6 +118,7 @@ class Player(pygame.sprite.Sprite):
             self.direction.x = 0
 
         if keys[pygame.K_SPACE] and self.can_move:
+
             if self.can_jump == True and self.jump_count > 0:             
                 if self.direction.y > 3 :         # 떨어지면서 점프하면 더블점프
                     pass
@@ -127,15 +129,16 @@ class Player(pygame.sprite.Sprite):
                 self.can_jump = False
                 self.can_double_jump = True
             elif self.status == 'fall' and self.can_double_jump:         # 더블점프기능 추가하기
-                self.jump_speed = -14
+                self.jump_speed = -12
                 self.jump()
                 self.create_fall_jump_particle(self.rect.midbottom)
                 self.can_double_jump = False
-                self.jump_speed = -18
+                self.jump_speed = -16
 
         if keys[pygame.K_s] and self.can_move:
             self.super_jump()
 
+        # Attack
         if keys[pygame.K_a]:
             if self.on_ground == True:
                 self.is_attack = True
@@ -143,8 +146,18 @@ class Player(pygame.sprite.Sprite):
 
         if keys[pygame.K_r]:
             self.is_restart = True
+        
+        #Credit
+        if keys[pygame.K_TAB]:
+            if self.is_credit == False:
+                self.is_credit = True
+        #Credit close
+        if keys[pygame.K_q]:
+            if self.is_credit == True:
+                self.is_credit = False
+                self.can_move = True
             
-
+            
     # player's status  
     def get_status(self):
         if self.direction.y < 0:
@@ -175,7 +188,7 @@ class Player(pygame.sprite.Sprite):
             self.jump()
             self.can_jump = False
             self.create_jump_particle(self.rect.midbottom)
-            self.jump_speed = -18
+            self.jump_speed = -16
             self.can_super_jump = False
 
 

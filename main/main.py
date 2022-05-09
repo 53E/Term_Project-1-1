@@ -6,7 +6,7 @@ pygame.init() # 초기화
 
 screen = pygame.display.set_mode((screen_width, screen_height))
 clock = pygame.time.Clock()
-level = Level(level_map,screen)
+level = Level(screen,level_map_0,level_map_1)
 
 pygame.display.set_caption('The Melancholy of StarGazer DEMO')
 
