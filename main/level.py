@@ -15,16 +15,26 @@ from star import Star
 from emerald import Emerald
 
 class Level:
-    def __init__(self,surface,level_data_0,level_data_1):
+    def __init__(self,surface,level_data_0,level_data_1,level_data_2,level_data_3,level_data_4,level_data_5):
         # 레벨 셋업
         self.level_data = level_data_0          # level_data 를 변경시켜주고 restart하면 맵 전환
         self.level_data_1 = level_data_1
+        self.level_data_2 = level_data_2
+        self.level_data_3 = level_data_3
+        self.level_data_4 = level_data_4
+        self.level_data_5 = level_data_5
 
+        self.is_level_1 = False
         self.display_surface = surface
         self.setup_level(level_data_0)   # level 불러오기
         self.world_shift = 0
         self.world_shift_y = 0
         self.current_x = 0
+        self.level_count = 1
+
+        self.jump_count = 100
+        self.super_jump = True
+
 
         # text
         self.is_welcome = True
@@ -32,8 +42,14 @@ class Level:
         self.font_info = pygame.font.Font('.\\font\\04B.ttf',25)
         self.font_name = pygame.font.Font('.\\font\\DungeonFont.ttf',20)
         self.font_npc  = pygame.font.Font('.\\font\\Minecraft.ttf',17)
+        self.font_npc_title = pygame.font.Font('.\\font\\DungeonFont.ttf',22)
 
         self.text_x = 90
+
+        # sound
+        self.bgm_8bit = pygame.mixer.Sound('.\\sound\\bgm\\bgm_8bit.wav')
+        self.bgm_loby = pygame.mixer.Sound('.\\sound\\bgm\\loby.wav')
+        self.bgm()
 
         # particle
         self.particle_sprite = pygame.sprite.Group()
@@ -152,14 +168,6 @@ class Level:
                 player.can_super_jump = True
                 coin.kill()
         
-    def get_emerald(self):
-        player = self.player.sprite
-
-        for emerald in self.emeralds:
-            if emerald.rect.colliderect(player.rect):
-                player.is_restart = True
-                self.level_clear_0()
-                emerald.kill()
         
     def witch_face(self):
         player = self.player.sprite
@@ -196,15 +204,17 @@ class Level:
         self.display_surface.blit(self.superjump_text,(1425,80))
         self.superjump_text = self.font_info.render('SUPER JUMP :',True,('white'))
         self.display_surface.blit(self.superjump_text,(1250,80))
+        self.superjump_text = self.font_info.render('RESTART : R',True,('white'))
+        self.display_surface.blit(self.superjump_text,(1250,130))
 
 
 
     # Welecom TEXT
     def welcome(self,x):
-        self.text_x += x
         player = self.player.sprite
 
         if self.is_welcome:
+            self.text_x += x
             self.welcome_text = self.font_title.render('The Melancholy',True,(255,0,0))
             self.display_surface.blit(self.welcome_text,(self.text_x,100))
             self.welcome_text = self.font_title.render('of StarGazer',True,(255,0,0))
@@ -223,12 +233,77 @@ class Level:
             self.display_surface.blit(self.welcome_text,(self.text_x ,850))
             self.welcome_text = self.font_name.render("JIN WOO CHOI",True,('black'))
             self.display_surface.blit(self.welcome_text,(self.text_x + 100,880))
+            self.welcome_text = self.font_npc_title.render("Look at the stars ...",True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2030 ,620))
+            self.welcome_text = self.font_npc_title.render("isnt it beatiful ?",True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2080 ,650))
             self.welcome_text = self.font_npc.render('Wake  Dream...!',True,('white'))
-            self.display_surface.blit(self.welcome_text,(self.text_x + 2520 ,720))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4120 ,720))
             self.welcome_text = self.font_npc.render("These stars...",True,('red'))
-            self.display_surface.blit(self.welcome_text,(self.text_x + 2530 ,750))
-            
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4130 ,750))
+    
+    # level_1_text
+    def level_1_text(self,x):
+        player = self.player.sprite
 
+        if self.is_level_1:
+            self.text_x += x
+            self.welcome_text = self.font_title.render('GOOD. . . LUCK. . . . .',True,(255,0,0))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 290,20))
+            self.welcome_text = self.font_npc.render('You  have  limited  JUMP  COUNT',True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 500 ,720))
+            self.welcome_text = self.font_npc.render('PRESS  S',True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 1000 ,720))
+            self.welcome_text = self.font_npc.render('you can SUPER JUMP !!',True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 950 ,770))
+            self.welcome_text = self.font_npc.render('you can DOUBLE JUMP !!',True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 1890 ,720))
+            self.welcome_text = self.font_npc.render('DOUBLE JUMP on air',True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 1900 ,770))
+            self.welcome_text = self.font_npc.render('not counted',True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 1940 ,790))
+            self.welcome_text = self.font_npc.render('PRESS  R',True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2550 ,600))
+            self.welcome_text = self.font_npc.render('you can RESTART',True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2520 ,640))
+            self.welcome_text = self.font_npc_title.render('D@m^T Y@3#o1u R#em2ebe4r',True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 3450 ,730))
+            self.welcome_text = self.font_npc_title.render('w@#ha9t y@u! d|id2@#?',True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 3540 ,760))
+
+    # level clear
+    def get_emerald(self):                
+        player = self.player.sprite
+
+        for emerald in self.emeralds:
+            if emerald.rect.colliderect(player.rect):
+                if self.level_count == 1:
+                    player.is_restart = True
+                    self.level_clear_0()
+                    self.bgm_loby.stop()
+                    self.level_count += 1
+                    self.bgm()
+                    emerald.kill()
+                elif self.level_count == 2:
+                    player.is_restart = True
+                    self.level_clear_1()
+                    self.level_count += 1
+                    emerald.kill()
+                elif self.level_count == 3:
+                    player.is_restart = True
+                    self.level_clear_2()
+                    self.level_count += 1
+                    emerald.kill()
+                elif self.level_count == 4:
+                    player.is_restart = True
+                    self.level_clear_3()
+                    self.level_count += 1
+                    emerald.kill()
+                elif self.level_count == 4:
+                    player.is_restart = True
+                    self.level_clear_4()
+                    self.level_count += 1
+                    emerald.kill()
 
     # 게임 restart
     def restart(self):
@@ -236,17 +311,112 @@ class Level:
         if player.is_restart == True:
             self.setup_level(self.level_data)
             self.text_x = 90                            # text 움직여주기
+            player = self.player.sprite
+            player.jump_count = self.jump_count
+            player.can_super_jump = self.super_jump
             player.is_restart = False
 
     # level clear ---------------------------------------------------------------------------------------------------
     def level_clear_0(self):    
         player = self.player.sprite
         if player.is_restart == True:
+
+            self.is_level_1 = True    #text 처리
             self.is_welcome = False
+            self.text_x = 90
+
             self.level_data = self.level_data_1
             self.setup_level(self.level_data)
+            player = self.player.sprite                # !!! setup_level 하면 플레이어가 초기화 즉 위에있는 player는 다른 객체 다시 만들어준다!!!#
+            self.jump_count = 2
+            pygame.display.set_caption('Level_1')
+            player.jump_count = self.jump_count
+            player.is_restart = False
+
+    def level_clear_1(self):    
+        player = self.player.sprite
+        if player.is_restart == True:
+            
+            self.is_level_1 = False
+            self.is_level_2 = True    #text 처리
+            self.text_x = 90
+
+            self.level_data = self.level_data_2
+            self.setup_level(self.level_data)
+            player = self.player.sprite                
+            self.jump_count = 7
+            self.super_jump = False
+            player.can_super_jump = False
+            pygame.display.set_caption('Level_2')
+            player.jump_count = self.jump_count
+            player.is_restart = False
+
+    def level_clear_2(self):    
+        player = self.player.sprite
+        if player.is_restart == True:
+            
+            
+            self.is_level_2 = False    #text 처리
+            self.is_level_3 = True
+            self.text_x = 90
+
+            self.level_data = self.level_data_3
+            self.setup_level(self.level_data)
+            player = self.player.sprite                
+            self.jump_count = 7
+            self.super_jump = True
+            player.can_super_jump = True
+            pygame.display.set_caption('Level_3')
+            player.jump_count = self.jump_count
+            player.is_restart = False
+    
+    def level_clear_3(self):    
+        player = self.player.sprite
+        if player.is_restart == True:
+            
+            
+            self.is_level_3 = False    #text 처리
+            self.is_level_4 = True
+            self.text_x = 90
+
+            self.level_data = self.level_data_4
+            self.setup_level(self.level_data)
+            player = self.player.sprite                
+            self.jump_count = 7
+            self.super_jump = True
+            player.can_super_jump = True
+            pygame.display.set_caption('Level_4')
+            player.jump_count = self.jump_count
+            player.is_restart = False
+    
+    def level_clear_4(self):    
+        player = self.player.sprite
+        if player.is_restart == True:
+            
+            
+            self.is_level_4 = False    #text 처리
+            self.is_level_5 = True
+            self.text_x = 90
+
+            self.level_data = self.level_data_5
+            self.setup_level(self.level_data)
+            player = self.player.sprite                
+            self.jump_count = 7
+            self.super_jump = True
+            player.can_super_jump = True
+            pygame.display.set_caption('Level_5')
+            player.jump_count = self.jump_count
             player.is_restart = False
     #----------------------------------------------------------------------------------------------------------------
+
+    def bgm(self):
+        if self.level_count == 1:
+            self.bgm_loby.play(-1)
+        else:
+            self.bgm_8bit.play(-1)
+
+
+
     def credit(self):
         player = self.player.sprite
 
@@ -276,8 +446,10 @@ class Level:
         self.star.draw(self.display_surface)
 
         #text
-        self.welcome(self.world_shift)
         self.interface()
+        self.welcome(self.world_shift)
+        self.level_1_text(self.world_shift)
+
         
         #coin
         self.coins.update(self.world_shift)
