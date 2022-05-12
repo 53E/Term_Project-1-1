@@ -1,5 +1,3 @@
-from email.mime import image
-import pstats
 import pygame
 from support import import_folder
 import time
@@ -15,6 +13,14 @@ class Player(pygame.sprite.Sprite):
 
         self.image = self.animations['idle'][self.frame_index]
         self.rect = self.image.get_rect(topleft = pos)
+
+        #sound
+        self.jump_sound_1 = pygame.mixer.Sound('.\\sound\\jump\\jump_1.wav')
+        self.jump_sound_1.set_volume(0.25)
+        self.jump_sound_2 = pygame.mixer.Sound('.\\sound\\jump\\jump_2.wav')
+        self.jump_sound_2.set_volume(0.25)
+        self.super_jump_sound = pygame.mixer.Sound('.\\sound\\jump\\super_jump.wav')
+        self.super_jump_sound.set_volume(0.5)
 
         # dust particles
         self.import_dust_run_particles()
@@ -41,6 +47,9 @@ class Player(pygame.sprite.Sprite):
         self.can_super_jump = True
         self.is_attack = False
         self.can_move = True
+
+        self.on_right = False
+        self.on_left = False
 
         # game status
         self.jump_count = 100
@@ -87,6 +96,14 @@ class Player(pygame.sprite.Sprite):
             flipped_image = pygame.transform.flip(image, True, False)        # 이미지 전환 pygame.transform.flip(image, x방향, y방향)
             self.image = flipped_image
 
+        # rect
+        if self.on_ground and self.on_right:
+            self.rect = self.image.get_rect(bottomright = self.rect.bottomright)
+        elif self.on_ground and self.on_left:
+            self.rect = self.image.get_rect(bottomleft = self.rect.bottomleft)
+        elif self.on_ground:
+            self.rect = self.image.get_rect(midbottom = self.rect.midbottom)
+
     def run_dust_animation(self):
         if self.status == 'run':
             self.dust_frame_index += self.dust_anim_speed
@@ -123,6 +140,7 @@ class Player(pygame.sprite.Sprite):
                 if self.direction.y > 3 :         # 떨어지면서 점프하면 더블점프
                     pass
                 else:
+                    self.jump_sound_1.play()
                     self.jump()
                     self.create_jump_particle(self.rect.midbottom)
                     self.jump_count -= 1                                    # 점프카운트 -> 공중점프는 횟수차감 x 
@@ -130,6 +148,7 @@ class Player(pygame.sprite.Sprite):
                 self.can_double_jump = True
             elif self.status == 'fall' and self.can_double_jump:         # 더블점프기능 추가하기
                 self.jump_speed = -12
+                self.jump_sound_2.play()
                 self.jump()
                 self.create_fall_jump_particle(self.rect.midbottom)
                 self.can_double_jump = False
@@ -185,6 +204,7 @@ class Player(pygame.sprite.Sprite):
     def super_jump(self):
         if self.can_super_jump and self.on_ground:
             self.jump_speed = -28
+            self.super_jump_sound.play()
             self.jump()
             self.can_jump = False
             self.create_jump_particle(self.rect.midbottom)

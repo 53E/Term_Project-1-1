@@ -1,7 +1,3 @@
-from distutils.spawn import spawn
-from pickletools import pybytes
-from re import S, T
-from tkinter.tix import Tree
 import pygame
 from support import import_folder
 from tiles import Tile
@@ -25,6 +21,10 @@ class Level:
         self.level_data_5 = level_data_5
 
         self.is_level_1 = False
+        self.is_level_2 = False
+        self.is_level_3 = False
+        self.is_level_4 = False
+        self.is_level_5 = False
         self.display_surface = surface
         self.setup_level(level_data_0)   # level 불러오기
         self.world_shift = 0
@@ -32,6 +32,7 @@ class Level:
         self.current_x = 0
         self.level_count = 1
 
+        # player
         self.jump_count = 100
         self.super_jump = True
 
@@ -49,6 +50,8 @@ class Level:
         # sound
         self.bgm_8bit = pygame.mixer.Sound('.\\sound\\bgm\\bgm_8bit.wav')
         self.bgm_loby = pygame.mixer.Sound('.\\sound\\bgm\\loby.wav')
+        self.horror_sound = pygame.mixer.Sound('.\\sound\\horror\\1.wav')
+        self.horror_sound.set_volume(0.2)
         self.bgm()
 
         # particle
@@ -137,8 +140,17 @@ class Level:
             if sprite.rect.colliderect(player.rect):    # colliderect 함수 - rect끼리의 충돌 체크
                 if player.direction.x < 0:
                     player.rect.left = sprite.rect.right
+                    player.on_left = True
+                    self.current_x = player.rect.left
                 if player.direction.x > 0:
                     player.rect.right = sprite.rect.left
+                    player.on_right = True
+                    self.current_x = player.rect.right
+
+        if player.on_left and (player.rect.left < self.current_x or player.direction.x >= 0):
+            player.on_left = False
+        if player.on_right and (player.rect.right > self.current_x or player.direction.x <= 0):
+            player.on_right = False
  
     # y축 플레이어 콜리전 설정
     def vertical_movement_collision(self):
@@ -208,9 +220,9 @@ class Level:
         self.display_surface.blit(self.superjump_text,(1250,130))
 
 
-
-    # Welecom TEXT
-    def welcome(self,x):
+    
+    # level_text
+    def level_text(self,x):
         player = self.player.sprite
 
         if self.is_welcome:
@@ -237,14 +249,12 @@ class Level:
             self.display_surface.blit(self.welcome_text,(self.text_x + 2030 ,620))
             self.welcome_text = self.font_npc_title.render("isnt it beatiful ?",True,('red'))
             self.display_surface.blit(self.welcome_text,(self.text_x + 2080 ,650))
-            self.welcome_text = self.font_npc.render('Wake  Dream...!',True,('white'))
-            self.display_surface.blit(self.welcome_text,(self.text_x + 4120 ,720))
-            self.welcome_text = self.font_npc.render("These stars...",True,('red'))
-            self.display_surface.blit(self.welcome_text,(self.text_x + 4130 ,750))
-    
-    # level_1_text
-    def level_1_text(self,x):
-        player = self.player.sprite
+            self.welcome_text = self.font_npc.render('When i look at the stars ...',True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4090 ,680))
+            self.welcome_text = self.font_npc.render("It's kind of scary",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4120 ,710))
+            self.welcome_text = self.font_npc.render("You think so, Don't you ?",True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4090 ,750))
 
         if self.is_level_1:
             self.text_x += x
@@ -266,10 +276,17 @@ class Level:
             self.display_surface.blit(self.welcome_text,(self.text_x + 2550 ,600))
             self.welcome_text = self.font_npc.render('you can RESTART',True,('white'))
             self.display_surface.blit(self.welcome_text,(self.text_x + 2520 ,640))
-            self.welcome_text = self.font_npc_title.render('D@m^T Y@3#o1u R#em2ebe4r',True,('red'))
-            self.display_surface.blit(self.welcome_text,(self.text_x + 3450 ,730))
-            self.welcome_text = self.font_npc_title.render('w@#ha9t y@u! d|id2@#?',True,('red'))
+            self.welcome_text = self.font_npc.render('This is beautiful ?',True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 3560 ,730))
+            self.welcome_text = self.font_npc.render("... You're joking, right ? ",True,('white'))
             self.display_surface.blit(self.welcome_text,(self.text_x + 3540 ,760))
+        
+        if self.is_level_2:
+            self.text_x += x
+            self.welcome_text = self.font_npc.render("what are those shiny thing ?",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 60 ,20))
+            self.welcome_text = self.font_npc.render(". . . . . look kind of sad",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 30 ,50))
 
     # level clear
     def get_emerald(self):                
@@ -277,6 +294,7 @@ class Level:
 
         for emerald in self.emeralds:
             if emerald.rect.colliderect(player.rect):
+                self.horror_sound.play()
                 if self.level_count == 1:
                     player.is_restart = True
                     self.level_clear_0()
@@ -447,8 +465,7 @@ class Level:
 
         #text
         self.interface()
-        self.welcome(self.world_shift)
-        self.level_1_text(self.world_shift)
+        self.level_text(self.world_shift)
 
         
         #coin
