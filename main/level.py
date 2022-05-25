@@ -10,8 +10,9 @@ from chick import Chick
 from star import Star
 from emerald import Emerald
 
+
 class Level:
-    def __init__(self,surface,level_data_0,level_data_1,level_data_2,level_data_3,level_data_4,level_data_5):
+    def __init__(self,surface,level_data_0,level_data_1,level_data_2,level_data_3,level_data_4,level_data_5,level_data_6):
         # 레벨 셋업
         self.level_data = level_data_0          # level_data 를 변경시켜주고 restart하면 맵 전환
         self.level_data_1 = level_data_1
@@ -19,12 +20,15 @@ class Level:
         self.level_data_3 = level_data_3
         self.level_data_4 = level_data_4
         self.level_data_5 = level_data_5
+        self.level_data_6 = level_data_6
 
         self.is_level_1 = False
         self.is_level_2 = False
         self.is_level_3 = False
         self.is_level_4 = False
         self.is_level_5 = False
+        self.is_level_6 = False
+
         self.display_surface = surface
         self.setup_level(level_data_0)   # level 불러오기
         self.world_shift = 0
@@ -32,10 +36,18 @@ class Level:
         self.current_x = 0
         self.level_count = 1
 
+        self.ending = False
+        self.do_once = True
+        self.count = 0
+        self.running = True
+
         # player
         self.jump_count = 100
         self.super_jump = True
+        self.coin_count = 0
 
+        self.chick_alive = True
+        self.is_witch = True
 
         # text
         self.is_welcome = True
@@ -51,14 +63,24 @@ class Level:
         self.bgm_8bit = pygame.mixer.Sound('.\\sound\\bgm\\bgm_8bit.wav')
         self.bgm_loby = pygame.mixer.Sound('.\\sound\\bgm\\loby.wav')
         self.horror_sound = pygame.mixer.Sound('.\\sound\\horror\\1.wav')
+        self.coin_sound = pygame.mixer.Sound('.\\sound\\coin\\coin.wav')
         self.horror_sound.set_volume(0.2)
+        self.ending_sound = pygame.mixer.Sound('.\\sound\\horror\\end.wav')
+        self.ending_sound.set_volume(0.25)
+        self.screem_sound = pygame.mixer.Sound('.\\sound\\horror\\screem.wav')
+        self.restart_sound = pygame.mixer.Sound('.\\sound\\horror\\restart.wav')
+        self.restart_sound.set_volume(0.25)
         self.bgm()
 
         # particle
         self.particle_sprite = pygame.sprite.Group()
         
-        #credit
+        #image
         self.credit_image = pygame.image.load('.\\graphics\\credit\\credit.png')
+        self.tree_image = pygame.image.load("graphics\\object\\tree\\tree.png")
+        self.smile_image = pygame.image.load("graphics\\object\\smile\\smile.png")
+        
+        
           
 
 
@@ -177,7 +199,8 @@ class Level:
 
         for coin in self.coins:
             if coin.rect.colliderect(player.rect):
-                player.can_super_jump = True
+                self.coin_sound.play()
+                self.coin_count += 1
                 coin.kill()
         
         
@@ -188,7 +211,39 @@ class Level:
             witch.face_right = True
         else:
             witch.face_right = False
-        
+    
+    def attack_chick(self):
+        player = self.player.sprite
+        for chick in self.chick:
+            if chick.rect.colliderect(player.rect) and player.is_attack and self.is_level_5:
+                chick.kill()
+                self.ending_sound.play()
+                self.chick_alive = False
+                pygame.display.set_caption('Tree and ...')
+                self.bgm_8bit.stop()
+                player.jump_count = 1
+                player.can_super_jump = True
+                for witch in self.witch:
+                    witch.kill()
+                    self.is_witch = False
+    
+    def attack_witch(self):
+        player = self.player.sprite
+        for witch in self.witch:
+            if witch.rect.colliderect(player.rect) and self.is_level_6 and player.is_attack:
+                witch.kill()
+                self.is_witch = False
+                self.ending = True
+        if self.ending:
+            self.display_surface.fill('black')
+            self.display_surface.blit(self.smile_image,(350,100))
+            self.count += 1
+            self.screem_sound.play()
+            if self.count > 50:
+                self.running = False
+
+
+
 
     # 추락처리
     def fall(self):
@@ -259,7 +314,11 @@ class Level:
         if self.is_level_1:
             self.text_x += x
             self.welcome_text = self.font_title.render('GOOD. . . LUCK. . . . .',True,(255,0,0))
-            self.display_surface.blit(self.welcome_text,(self.text_x - 290,20))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 490,20))
+            self.welcome_text = self.font_npc.render("Hello, I'm chicken !",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 120 ,750))
+            self.welcome_text = self.font_npc.render("Oh, is it not?",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 100 ,780))
             self.welcome_text = self.font_npc.render('You  have  limited  JUMP  COUNT',True,('yellow'))
             self.display_surface.blit(self.welcome_text,(self.text_x + 500 ,720))
             self.welcome_text = self.font_npc.render('PRESS  S',True,('yellow'))
@@ -287,6 +346,87 @@ class Level:
             self.display_surface.blit(self.welcome_text,(self.text_x - 60 ,20))
             self.welcome_text = self.font_npc.render(". . . . . look kind of sad",True,('white'))
             self.display_surface.blit(self.welcome_text,(self.text_x - 30 ,50))
+            self.welcome_text = self.font_npc.render("Why are you looking at me like that ?",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4320 ,720))
+            self.welcome_text = self.font_npc.render(". . . Are you . . angry?",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 4370 ,750))
+        
+        if self.is_level_3:
+            self.text_x += x
+            self.welcome_text = self.font_npc.render("You need to get all the COIN",True,('yellow'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 200 ,700))
+            self.welcome_text = self.font_npc_title.render("Your  favorite  money . . .",True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 300 ,740))
+            self.superjump_text = self.font_info.render('COIN :',True,('yellow'))
+            self.display_surface.blit(self.superjump_text,(40,40))
+            self.coin_count_text = self.font_info.render(str(self.coin_count),True,('yellow'))
+            self.display_surface.blit(self.coin_count_text,(130,40))
+            self.coin_count_text = self.font_info.render('/ 5',True,('yellow'))
+            self.display_surface.blit(self.coin_count_text,(160,40))
+            self.welcome_text = self.font_npc.render("Coins shine like stars",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 3790 ,720))
+            self.welcome_text = self.font_npc.render("Ha Ha . . .",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 3840 ,750))
+            self.welcome_text = self.font_npc.render("I think  I'm tall  !",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x -110 ,290))
+
+
+        if self.is_level_4:
+            self.text_x += x
+            self.welcome_text = self.font_npc.render("It's too dark here !",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x - 130 ,780))
+            self.welcome_text = self.font_npc.render("hey . . .",True,('white'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2090 ,720))
+            self.welcome_text = self.font_npc.render("Is that a knife . . ?",True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 2040 ,750))
+            self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+            self.display_surface.blit(self.welcome_text,(self.text_x + 1440 ,150))
+        
+        if self.is_level_5:
+            self.text_x += x
+            self.display_surface.blit(self.tree_image,(self.text_x + 2500,165))
+
+            if self.chick_alive:
+                self.welcome_text = self.font_npc.render("What a nice tree !",True,('white'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 2500 ,780))
+                self.welcome_text = self.font_npc.render(". . . . .",True,('white'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 330 ,750))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 1040 ,250))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 120 ,550))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 330 ,150))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 480 ,50))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 510 ,550))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 620 ,250))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 840 ,350))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 140 ,350))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 440 ,520))
+                self.welcome_text = self.font_title.render('KILL THE KID . . .',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 340 ,650))
+                self.welcome_text = self.font_title.render('PRESS A',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 1040 ,450))
+                self.welcome_text = self.font_title.render('PRESS A',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 240 ,450))
+                self.welcome_text = self.font_title.render('PRESS A',True,('red'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 440 ,250))
+
+        if self.is_level_6:
+                self.text_x += x
+                self.display_surface.blit(self.tree_image,(self.text_x + 2500,165))
+                self.welcome_text = self.font_npc.render("I didn't see anything . . . . ",True,('white'))
+                self.display_surface.blit(self.welcome_text,(self.text_x + 3300 ,750))
+
+
+            
+
 
     # level clear
     def get_emerald(self):                
@@ -294,8 +434,8 @@ class Level:
 
         for emerald in self.emeralds:
             if emerald.rect.colliderect(player.rect):
-                self.horror_sound.play()
                 if self.level_count == 1:
+                    self.horror_sound.play()
                     player.is_restart = True
                     self.level_clear_0()
                     self.bgm_loby.stop()
@@ -303,35 +443,51 @@ class Level:
                     self.bgm()
                     emerald.kill()
                 elif self.level_count == 2:
+                    self.horror_sound.play()
                     player.is_restart = True
                     self.level_clear_1()
                     self.level_count += 1
                     emerald.kill()
                 elif self.level_count == 3:
+                    self.horror_sound.play()
                     player.is_restart = True
                     self.level_clear_2()
                     self.level_count += 1
                     emerald.kill()
-                elif self.level_count == 4:
+                elif self.level_count == 4 and self.coin_count >= 5:
+                    self.horror_sound.play()
                     player.is_restart = True
                     self.level_clear_3()
                     self.level_count += 1
+                    self.coin_count = 0
                     emerald.kill()
-                elif self.level_count == 4:
+                elif self.level_count == 5:
+                    self.horror_sound.play()
                     player.is_restart = True
                     self.level_clear_4()
                     self.level_count += 1
+                    emerald.kill()
+                elif self.level_count == 6 and self.chick_alive == False:
+                    self.horror_sound.play()
+                    player.is_restart = True
+                    self.level_clear_5()
+                    self.level_count += 1
+                    self.chick_alive = True
+                    self.is_witch = True
+                    self.display_surface.blit(self.tree_image,(self.text_x + 2500,165))
                     emerald.kill()
 
     # 게임 restart
     def restart(self):
         player = self.player.sprite
-        if player.is_restart == True:
+        if player.is_restart == True and self.is_level_5 == False:
             self.setup_level(self.level_data)
             self.text_x = 90                            # text 움직여주기
             player = self.player.sprite
             player.jump_count = self.jump_count
             player.can_super_jump = self.super_jump
+            self.restart_sound.play()
+            self.coin_count = 0
             player.is_restart = False
 
     # level clear ---------------------------------------------------------------------------------------------------
@@ -381,7 +537,7 @@ class Level:
             self.level_data = self.level_data_3
             self.setup_level(self.level_data)
             player = self.player.sprite                
-            self.jump_count = 7
+            self.jump_count = 11
             self.super_jump = True
             player.can_super_jump = True
             pygame.display.set_caption('Level_3')
@@ -400,10 +556,10 @@ class Level:
             self.level_data = self.level_data_4
             self.setup_level(self.level_data)
             player = self.player.sprite                
-            self.jump_count = 7
+            self.jump_count = 999
             self.super_jump = True
             player.can_super_jump = True
-            pygame.display.set_caption('Level_4')
+            pygame.display.set_caption('Dark')
             player.jump_count = self.jump_count
             player.is_restart = False
     
@@ -419,10 +575,29 @@ class Level:
             self.level_data = self.level_data_5
             self.setup_level(self.level_data)
             player = self.player.sprite                
-            self.jump_count = 7
+            self.jump_count = 0
+            self.super_jump = False
+            player.can_super_jump = False
+            pygame.display.set_caption('Tree and KID')
+            player.jump_count = self.jump_count
+            player.is_restart = False
+
+    def level_clear_5(self):    
+        player = self.player.sprite
+        if player.is_restart == True:
+            
+            
+            self.is_level_5 = False    #text 처리
+            self.is_level_6 = True
+            self.text_x = 90
+
+            self.level_data = self.level_data_6
+            self.setup_level(self.level_data)
+            player = self.player.sprite                
+            self.jump_count = 999
             self.super_jump = True
             player.can_super_jump = True
-            pygame.display.set_caption('Level_5')
+            pygame.display.set_caption('Tree and star')
             player.jump_count = self.jump_count
             player.is_restart = False
     #----------------------------------------------------------------------------------------------------------------
@@ -481,13 +656,16 @@ class Level:
         self.scroll_x()
 
         # witch
-        self.witch_face()
+        if self.is_witch:
+            self.witch_face()
         self.witch.update(self.world_shift)
         self.witch.draw(self.display_surface)
 
         #chick
-        self.chick.update(self.world_shift)
-        self.chick.draw(self.display_surface)
+        if self.chick_alive:
+            self.chick.update(self.world_shift)
+            self.chick.draw(self.display_surface)
+        self.attack_chick()
         
         
         #player
@@ -498,4 +676,5 @@ class Level:
 
         #credit
         self.credit()
+        self.attack_witch()
         
