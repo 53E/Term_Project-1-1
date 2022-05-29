@@ -1,4 +1,4 @@
-import pygame, sys, time
+import pygame, sys
 from setting import *
 from level import *
 

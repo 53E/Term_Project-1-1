@@ -76,7 +76,6 @@ class Level:
         self.particle_sprite = pygame.sprite.Group()
         
         #image
-        self.credit_image = pygame.image.load('.\\graphics\\credit\\credit.png')
         self.tree_image = pygame.image.load("graphics\\object\\tree\\tree.png")
         self.smile_image = pygame.image.load("graphics\\object\\smile\\smile.png")
         
@@ -221,8 +220,8 @@ class Level:
                 self.chick_alive = False
                 pygame.display.set_caption('Tree and ...')
                 self.bgm_8bit.stop()
-                player.jump_count = 1
-                player.can_super_jump = True
+                player.jump_count = 0
+                player.can_super_jump = False
                 for witch in self.witch:
                     witch.kill()
                     self.is_witch = False
@@ -294,8 +293,6 @@ class Level:
             self.display_surface.blit(self.welcome_text,(self.text_x ,450))
             self.welcome_text = self.font_info.render('R - RESTART',True,('white'))
             self.display_surface.blit(self.welcome_text,(self.text_x ,550))
-            self.welcome_text = self.font_info.render('TAB - CREDIT',True,('white'))
-            self.display_surface.blit(self.welcome_text,(self.text_x ,750))
             self.welcome_text = self.font_info.render('ESC - QUIT',True,('white'))
             self.display_surface.blit(self.welcome_text,(self.text_x ,850))
             self.welcome_text = self.font_name.render("JIN WOO CHOI",True,('black'))
@@ -607,15 +604,6 @@ class Level:
             self.bgm_loby.play(-1)
         else:
             self.bgm_8bit.play(-1)
-
-
-
-    def credit(self):
-        player = self.player.sprite
-
-        if player.is_credit == True:
-            self.display_surface.blit(self.credit_image,(0,0))
-            player.can_move = False
         
         
 
@@ -674,7 +662,5 @@ class Level:
         self.vertical_movement_collision()
         self.player.draw(self.display_surface)
 
-        #credit
-        self.credit()
         self.attack_witch()
         

@@ -70,18 +70,18 @@ level_map_4 = [
 'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']
 
 level_map_5 = [
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X                                              X ',
-'X  P                                           X ',
-'X                                              X ',
-'XE    W                           H            X ',
-'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX ']
+'                                               ',
+'                                               ',
+'                                               ',
+'                                               ',
+'                                               ',
+'                                               ',
+'                                               ',
+'                                               ',
+'  P                                            ',
+'                                               ',
+'XE   W                           H            X',
+'XXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXXX']
 
 level_map_6 = [
 '                                              ',

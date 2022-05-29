@@ -165,16 +165,7 @@ class Player(pygame.sprite.Sprite):
 
         if keys[pygame.K_r]:
             self.is_restart = True
-        
-        #Credit
-        if keys[pygame.K_TAB]:
-            if self.is_credit == False:
-                self.is_credit = True
-        #Credit close
-        if keys[pygame.K_q]:
-            if self.is_credit == True:
-                self.is_credit = False
-                self.can_move = True
+
             
             
     # player's status  
